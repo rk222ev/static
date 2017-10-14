@@ -1,0 +1,13 @@
+[:author-email "{{author-email}}"
+ :author-name "{{author}}"
+ :blog-as-index nil
+ :default-template "default.clj"
+ :encoding "UTF-8"
+ :in-dir ""
+ :out-dir "html/"
+ :posts-per-page 1
+ :site-keywords "{{keywords}}"
+ :site-description "{{description}}"
+ :site-url "https://{{title}}.com/"
+ :url-base ""
+ :site-title "{{title}}"]
