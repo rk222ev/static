@@ -11,12 +11,10 @@
             [ring.util.response :refer :all]
             [static.config :as config]
             [static.io :as io]
+            [static.filesystem :as fs]
             [stringtemplate-clj.core :as string-template]
             [watchtower.core :as watcher])
-  (:import (java.io File)
-           (java.net URL)
-           (java.text SimpleDateFormat)
-           (org.apache.commons.io FileUtils FilenameUtils))
+  (:import (java.text SimpleDateFormat))
   (:gen-class))
 
 (defn setup-logging []
@@ -45,7 +43,7 @@
 (defn post-url
   "Given a post file return its URL."
   [file]
-  (let [name (FilenameUtils/getBaseName (str file))
+  (let [name (fs/filename (str file))
         url (str (apply str (interleave (repeat \/) (.split name "-" 4))) "/")]
     (if (empty? (:post-out-subdir (config/config)))
       url
@@ -55,7 +53,7 @@
   (-> (str f)
       (.replaceAll "\\\\" "/")
       (.replaceAll (io/dir-path :site) "")
-      (FilenameUtils/removeExtension)
+      (fs/without-extension)
       (str "."
            (or ext
                (:default-extension (config/config))))))
@@ -109,16 +107,16 @@
   (let [[metadata content] (io/read-doc file)]
     [:item
      [:title (escape-html (:title metadata))]
-     [:link  (str (URL. (URL. (:site-url (config/config))) (post-url file)))]
+     [:link (str (fs/as-url (str (:site-url (config/config)) (post-url file))))
      [:pubDate (parse-date "yyyy-MM-dd" "E, d MMM yyyy HH:mm:ss Z"
                            (re-find #"\d*-\d*-\d*"
-                                    (FilenameUtils/getBaseName (str file))))]
-     [:description (escape-html @content)]]))
+                                    (fs/filename (str file))))]
+     [:description (escape-html @content)]]]))
 
 (defn create-rss
   "Create RSS feed."
   []
-  (let [in-dir (File. (io/dir-path :posts))
+  (let [in-dir (fs/file (io/dir-path :posts))
         posts (take 10 (reverse (io/list-files :posts)))]
     (io/write-out-dir "rss-feed"
                    (hiccup/html (xml-declaration "UTF-8")
@@ -176,7 +174,7 @@
                       (let [template-path (str (:in-dir (config/config))
                                                "templates/"
                                                (:tags-template (config/config)))]
-                        (hiccup/html (if (.isFile (File. template-path))
+                        (hiccup/html (if (fs/file? (fs/file template-path))
                                        @(second (io/read-doc template-path))
                                        [:div
                                         [:h2 "Tags"]
@@ -218,7 +216,7 @@
      [:p {:class "publish_date"}
       (parse-date "yyyy-MM-dd" "dd MMM yyyy"
                   (re-find #"\d*-\d*-\d*"
-                           (FilenameUtils/getBaseName (str f))))]
+                           (fs/filename (str f))))]
      [:p @content]]))
 
 (defn create-latest-posts
@@ -251,7 +249,7 @@
   (->> (io/list-files :posts)
        (reduce (fn [h v]
                  (let  [date (re-find #"\d*-\d*"
-                                      (FilenameUtils/getBaseName (str v)))]
+                                      (fs/filename (str v)))]
                    (if (nil? (h date))
                      (assoc h date 1)
                      (assoc h date (+ 1 (h date)))))) {})
@@ -283,7 +281,7 @@
     (fn [month]
       (let [posts (->> (io/list-files :posts)
                        (filter #(.startsWith
-                                 (FilenameUtils/getBaseName (str %)) month))
+                                 (fs/filename (str %)) month))
                        reverse)]
         (io/write-out-dir
          (str "archives/" (.replace month "-" "/") "/index.html")
@@ -304,7 +302,7 @@
      (when-let [aliases (-> doc first :alias)]
        (doseq [alias (read-string aliases)]
          (io/write-out-dir
-          alias
+          (subs alias 1)
           (hiccup/html [:html
                         [:head
                          [:meta {:http-equiv "content-type" :content "text/html; charset=utf-8"}]
@@ -317,8 +315,8 @@
    (pmap
     #(let [f %
            [metadata content] (io/read-doc f)
-           out-file (reduce (fn [h v] (.replaceFirst h "-" "/"))
-                            (FilenameUtils/getBaseName (str f)) (range 3))
+           out-file (reduce (fn [h v] (str/replace-first h #"-" "/"))
+                            (fs/filename (str f)) (range 3))
            out-file (if (empty? (:post-out-subdir (config/config)))
                       out-file
                       (str (:post-out-subdir (config/config)) "/" out-file))]
@@ -335,24 +333,24 @@
 (defn process-public
   "Copy public from in-dir to out-dir."
   []
-  (let [in-dir (File. (io/dir-path :public))
-        out-dir (File. (:out-dir (config/config)))]
-    (doseq [f (map #(File. in-dir %) (.list in-dir))]
-      (if (.isFile f)
-        (FileUtils/copyFileToDirectory f out-dir)
-        (FileUtils/copyDirectoryToDirectory f out-dir)))))
+  (let [in-dir (fs/file (io/dir-path :public))
+        out-dir (fs/file (:out-dir (config/config)))]
+    (doseq [f (map #(fs/file in-dir %) (.list in-dir))]
+      (if (fs/file? f)
+        (fs/copy f out-dir)
+        (fs/copy f out-dir)))))
 
 (defn create
   "Build Site."
   []
-  (doto (File. (:out-dir (config/config)))
-    (FileUtils/deleteDirectory)
-    (.mkdir))
+  (doto (fs/file (:out-dir (config/config)))
+    (fs/delete-directory)
+    (fs/create-directory))
 
   (log-time-elapsed "Processing Public " (process-public))
   (log-time-elapsed "Processing Site " (process-site))
 
-  (when (pos? (-> (io/dir-path :posts) (File.) .list count))
+  (when (pos? (-> (io/dir-path :posts) (fs/file) .list count))
     (log-time-elapsed "Processing Posts " (process-posts))
     (log-time-elapsed "Creating RSS " (create-rss))
     (log-time-elapsed "Creating Tags " (create-tags))
@@ -367,11 +365,11 @@
       (log-time-elapsed "Creating Latest Posts " (create-latest-posts))
       (let [out-dir (:out-dir (config/config))
             latest-posts-path (str out-dir "latest-posts/")]
-        (if-let [dir (.list (File. latest-posts-path))]
+        (if-let [dir (.list (fs/file latest-posts-path))]
           (let [max (apply max (map read-string dir))]
-            (FileUtils/copyFile
-             (File. (str latest-posts-path max "/index.html"))
-             (File. (str out-dir "index.html"))))
+            (fs/copy
+             (fs/file (str latest-posts-path max "/index.html"))
+             (fs/file  out-dir)))
           (log/warn (str  "\"" latest-posts-path "\""
                           " is not a valid directory."
                           " Ensure :out-dir ends with a trailing slash.")))))))
@@ -428,7 +426,7 @@
       (when (or tmp
                 (and (:atomic-build (config/config))
                      build))
-        (let [loc (FilenameUtils/normalize tmp-dir)]
+        (let [loc (fs/normalize tmp-dir)]
           (config/set!-config :out-dir loc)
           (log/info (str "Using tmp location: " (:out-dir (config/config))))))
 
@@ -444,8 +442,8 @@
 
       (when (and (:atomic-build (config/config))
                  build)
-        (FileUtils/deleteDirectory (File. out-dir))
-        (FileUtils/moveDirectory (File. tmp-dir) (File. out-dir))))
+        (fs/delete-directory (fs/file out-dir))
+        (fs/move (fs/file tmp-dir) (fs/file out-dir))))
 
     (when-not watch
       (shutdown-agents))))

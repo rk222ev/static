@@ -1,15 +1,16 @@
 (ns static.test.dummy-fs
-  (:import (java.io File)))
+  (:require
+   [static.filesystem :as fs]))
 
 (defn- create-resources []
-  (.mkdir (File. "resources/"))
-  (.mkdir (File. "resources/site/"))
-  (.mkdir (File. "resources/public/"))
-  (.mkdir (File. "resources/posts/"))
-  (.mkdir (File. "resources/templates/")))
+  (fs/create-directory "resources/")
+  (fs/create-directory "resources/site/")
+  (fs/create-directory "resources/public/")
+  (fs/create-directory "resources/posts/")
+  (fs/create-directory "resources/templates/"))
 
 (defn- create-site []
-  (spit (File. "resources/site/dummy.markdown")
+  (spit (fs/file "resources/site/dummy.markdown")
 	"---
 title: dummy content
 description: some dummy desc
@@ -18,15 +19,15 @@ tags: unit test
 
 Some dummy file for unit testing.")
 
-  (spit (File. "resources/site/style.cssgen")
+  (spit (fs/file "resources/site/style.cssgen")
         "[[:body :font-size :1em]]")
-  
-  (spit (File. "resources/site/dummy_clj.clj")
+
+  (spit (fs/file "resources/site/dummy_clj.clj")
 	"{:title \"Dummy Clj File\"}
 [:h3 \"Dummy Clj Content\"]")
 
-(spit 
- (File. "resources/site/html_template.markdown")
+(spit
+ (fs/file "resources/site/html_template.markdown")
  "---
 TITLE: Html Template Test
 TEMPLATE: temp
@@ -35,8 +36,8 @@ TEMPLATE: temp
 Dummy Html Post Template"))
 
 (defn- create-dummy-posts []
-  (spit 
-   (File. "resources/posts/2050-01-01-dummy-future-post-1.markdown")
+  (spit
+   (fs/file "resources/posts/2050-01-01-dummy-future-post-1.markdown")
    "---
 TITLE: dummy future post 1
 TAGS: 4673 9c0e same
@@ -45,8 +46,8 @@ TEMPLATE: temp.clj
 
 text dummy post 1")
 
-  (spit 
-   (File. "resources/posts/2050-02-02-dummy-future-post-2.markdown")
+  (spit
+   (fs/file "resources/posts/2050-02-02-dummy-future-post-2.markdown")
    "---
 title: dummy future post 2
 tags: e8edaab7 25e9 same
@@ -55,8 +56,8 @@ template: temp.clj
 
 text dummy post 2")
 
-  (spit 
-   (File. "resources/posts/2050-03-03-dummy-future-post-3.markdown")
+  (spit
+   (fs/file "resources/posts/2050-03-03-dummy-future-post-3.markdown")
    "---
 title: dummy future post 3
 tags: 45f5 8a0c same
@@ -64,8 +65,8 @@ tags: 45f5 8a0c same
 
 text dummy post 3")
 
-  (spit 
-   (File. "resources/posts/2050-04-04-dummy-future-post-4.markdown")
+  (spit
+   (fs/file "resources/posts/2050-04-04-dummy-future-post-4.markdown")
    "---
 title: dummy future post 4
 tags: 4784d643 e4e8 same
@@ -75,8 +76,8 @@ alias: [\"/first-alias/index.html\", \"/second-alias/index.html\"]
 
 text dummy post 4")
 
-  (spit 
-   (File. "resources/posts/2050-05-05-dummy-future-post-5.markdown")
+  (spit
+   (fs/file "resources/posts/2050-05-05-dummy-future-post-5.markdown")
    "---
 title: dummy future post 5
 tags: 6662
@@ -85,8 +86,8 @@ published: false
 
 Should be skipped...")
 
-  (spit 
-   (File. "resources/posts/2050-06-06-dummy-future-post-6.html")
+  (spit
+   (fs/file "resources/posts/2050-06-06-dummy-future-post-6.html")
    "---
 title: org-jekyll entry
 on: <2050-06-06 Sat>
@@ -99,12 +100,12 @@ CATEGORY: test
 <h2 id=\"sec-1\"><a href=\"test.html\">First blog entry </a></h2>
 <div class=\"outline-text-2\" id=\"text-1\">
 
-<p>With some content in the first entry. 
+<p>With some content in the first entry.
 </p></div>
 </div>")
 
-  (spit 
-   (File. "resources/posts/2050-07-07-dummy-future-post-7.org")
+  (spit
+   (fs/file "resources/posts/2050-07-07-dummy-future-post-7.org")
    "#+title: Dummy org-mode post
 #+tags: org-mode org-babel
 #+template: temp.clj
@@ -121,8 +122,8 @@ Sum 1 and 2
 
 ")
 
-(spit 
- (File. "resources/posts/2050-08-08-dummy-future-post-8.org")
+(spit
+ (fs/file "resources/posts/2050-08-08-dummy-future-post-8.org")
  "
 #+title: dummy future post 8
 #+tags: 45f5 8a06 same
@@ -131,12 +132,12 @@ Sum 1 and 2
 org alias test"))
 
 (defn- create-template []
-  (spit (File. "resources/templates/temp.clj") "content")
-  (spit (File. "resources/templates/temp.st")
+  (spit (fs/file "resources/templates/temp.clj") "content")
+  (spit (fs/file "resources/templates/temp.st")
         "<html><title>$title$</title><body>$content$</body></html>"))
 
 (defn- create-default-template []
-  (spit (File. "resources/templates/default.clj")
+  (spit (fs/file "resources/templates/default.clj")
         "
 (let
     [config (static.config/config)
@@ -156,10 +157,10 @@ org alias test"))
    [:body]))"))
 
 (defn- create-static-file []
-  (spit (File. "resources/public/dummy.static") "Hello, World!!"))
+  (spit (fs/file "resources/public/dummy.static") "Hello, World!!"))
 
 (defn- create-config []
-  (spit (File. "config.clj") 
+  (spit (fs/file "config.clj")
 	"
 [:site-title \"Dummy Site\"
  :site-description \"Dummy Description\"
