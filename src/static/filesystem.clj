@@ -9,10 +9,15 @@
   [file]
   (io/as-url file))
 
-(defn directory?
-  "Returns true if the path is a directory; false otherwise."
-  [^String path]
-  (.isDirectory path))
+(defmulti directory? class)
+
+(defmethod directory? String
+  [path]
+  (.isDirectory (io/file path)))
+
+(defmethod directory? java.io.File
+  [file]
+  (.isDirectory file))
 
 (defn file
   "Converts a path to a file"
@@ -28,7 +33,6 @@
 (defmethod file? java.io.File
   [file]
   (.isFile file))
-
 
 (defn delete-file
   [path]

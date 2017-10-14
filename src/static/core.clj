@@ -4,6 +4,7 @@
             [clojure.string :as str]
             [clojure.tools.cli :as cli]
             [clojure.tools.logging :as log]
+            [clojure.java.io :as jio]
             [hiccup.core :as hiccup]
             [hiccup.page :refer :all]
             [hiccup.util :refer :all]
@@ -397,7 +398,8 @@
                         (catch Exception e
                           (log/error (str "Exception thrown while building site! " e))))))))
 
-(def cli-opts [[nil "--build" "Build Site."]
+(def cli-opts [[nil "--init" "Create a starter site"]
+               [nil "--build" "Build Site."]
                [nil "--tmp" "Use tmp location override :out-dir"]
                [nil "--jetty" "View Site."]
                [nil "--watch" "Watch Site and Rebuild on Change."]
@@ -406,11 +408,26 @@
 
 (defn -main [& args]
   (let [{:keys [options summary errors]} (cli/parse-opts args cli-opts)
-        {:keys [build tmp jetty watch rsync help]} options]
+        {:keys [build tmp jetty watch rsync help init]} options]
 
     (when errors
       (println (str/join "\n" errors))
       (System/exit 1))
+
+    (when init
+      (println "init")
+
+      (let [q [[:title "The name of the site:"]
+               [:author "The authors name:"]
+               [:author-email "The autors email:"]
+               [:keywords "Site specific keywords"]
+               [:description "Site description"]
+               [:url "Site url"]]
+            options (reduce #(conj %1
+                                   (do (println (second %2))
+                                       {(first %2) (read-line)})) {} q)]
+        (io/copy-init-folder options))
+      (System/exit 0))
 
     (when help
       (println "Static: a static blog generator.\n")

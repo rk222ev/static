@@ -1,0 +1,9 @@
+#+title:  Hello World!
+#+description: A first post
+#+tags: Hello World
+#+options: num:nil
+
+#+link: nakkaya http://nakkaya.com
+
+Hello blogging world!
+[[nakkaya][nakkaya.com]]

@@ -11,7 +11,9 @@
                  [ring/ring-jetty-adapter "1.6.2"]
                  [watchtower "0.1.1"]
                  [stringtemplate-clj "0.1.0"]
-                 [org.clojure/core.memoize "0.5.9"]]
+                 [org.clojure/core.memoize "0.5.9"]
+                 [stencil "0.5.0"]
+                 [cpath-clj "0.1.2"]]
   :profiles {:dev {:plugins [[lein-ancient "0.6.12"]]}}
   :main static.core
   :aot :all

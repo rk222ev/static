@@ -1,0 +1,99 @@
+body {
+  font-family: 'Computer Modern Serif', serif;
+  font-size: 1.1em;
+}
+
+#wrap {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+#header {
+  text-align: center;
+}
+
+#header a {
+  color: black;
+}
+
+#header h1 a {
+  text-decoration: none;
+}
+
+#header ul {
+  padding-left: 0;
+}
+
+#navigation {
+  list-style: none;
+}
+
+#navigation a {
+  text-decoration: none;
+  font-weight: 400;
+}
+
+#navigation li {
+  display: inline;
+  padding: 0 10px;
+  text-decoration: none;
+}
+
+#navigation li + li {
+  border-left: 1px solid #e5e6e6;
+}
+
+#footer {
+  margin-top: 20px;
+}
+
+#icons {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+}
+
+#icons ul {
+  list-style: none;
+  padding: 0;
+  background:
+}
+
+#post h2 a {
+  text-decoration: none;
+}
+
+#post h2 {
+  margin-bottom: 0px;
+}
+
+.publish_date {
+  margin-top: 0px;
+  color: #9a9a9a;
+}
+
+pre {
+    display: block;
+    padding: 9.5px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.42857143;
+    color: #333;
+    word-break: break-all;
+    word-wrap: break-word;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    white-space: pre-wrap;
+
+}
+
+.post-tags ul {
+    display: inline;
+    padding-left: 0;
+}
+
+.post-tags li {
+  display: inline;
+  padding: 0 5px;
+}
