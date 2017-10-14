@@ -6,7 +6,6 @@
                  [cssgen "0.3.0-SNAPSHOT" :exclusions [org.clojure/clojure]]
                  [hiccup "1.0.5"]
                  [org.pegdown/pegdown "1.6.0"]
-                 [org.clojars.amit/commons-io "1.4.0"]
                  [ring/ring-core "1.5.1"]
                  [ring/ring-jetty-adapter "1.5.1"]
                  [watchtower "0.1.1"]

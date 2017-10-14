@@ -1,6 +1,6 @@
 (ns static.config
-  (:require [clojure.tools.logging :as log])
-  (:import (java.io File)))
+  (:require [clojure.tools.logging :as log]
+            [static.filesystem :as fs]))
 
 
 (let [defaults {:site-title "A Static Blog"
@@ -20,15 +20,18 @@
                                       (org-html-export-as-html nil nil nil t nil)
                                       (with-current-buffer "*Org HTML Export*"
                                         (princ (org-no-properties (buffer-string)))))}]
-  
+
   (def config
     (memoize
-     #(try 
-        (let [config (apply hash-map (read-string (slurp (File. "config.clj"))))]
-          (merge defaults config))
-        (catch Exception e (do 
-                             (log/info "Configuration not found using defaults.")
-                             defaults))))))
+     #(try
+     (let [config (apply hash-map
+                         (read-string (slurp
+                                       (fs/file
+                                        (str (System/getProperty "user.dir") "/config.clj")))))]
+       (merge defaults config))
+       (catch Exception e (do
+                            (log/info "Configuration not found using defaults.")
+                            defaults))))))
 
 (defn set!-config [k v]
   (alter-var-root (find-var 'static.config/config) (fn [c] #(identity (assoc (c) k v)))))
