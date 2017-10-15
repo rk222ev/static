@@ -44,15 +44,15 @@
   "Given a post file return its URL."
   [file]
   (let [name (fs/filename (str file))
-        url (str (apply str (interleave (repeat \/) (.split name "-" 4))) "/")]
+        url (str (apply str (interleave (repeat \/) (str/split name #"-" 4))) "/")]
     (if (empty? (:post-out-subdir (config/config)))
       url
       (str "/" (:post-out-subdir (config/config)) url))))
 
 (defn site-url [f & [ext]]
   (-> (str f)
-      (.replaceAll "\\\\" "/")
-      (.replaceAll (io/dir-path :site) "")
+      (str/replace #"\\\\" "//")
+      (str/replace (io/dir-path :site) "")
       (fs/without-extension)
       (str "."
            (or ext
@@ -270,7 +270,7 @@
              (map
               (fn [[mount count]]
                 [:li [:a
-                      {:href (str "/archives/" (.replace mount "-" "/") "/")}
+                      {:href (str "/archives/" (str/replace mount #"-" "/") "/")}
                       (parse-date "yyyy-MM" "MMMM yyyy" mount)]
                  (str " (" count ")")])
               (post-count-by-mount))]))]))
@@ -284,7 +284,7 @@
                                  (fs/filename (str %)) month))
                        reverse)]
         (io/write-out-dir
-         (str "archives/" (.replace month "-" "/") "/index.html")
+         (str "archives/" (str/replace month #"-" "/") "/index.html")
          (template
           [{:title "Archives" :template (:default-template (config/config))}
            (hiccup/html (map snippet posts))]))))
