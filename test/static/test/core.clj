@@ -10,14 +10,15 @@
   (create-dummy-fs)
   (create)
   (f)
-  (fs/delete-directory (fs/file "resources/"))
-  (fs/delete-directory (fs/file "html/")))
+  (fs/delete-directory (fs/file (resource-dir "/")))
+  (fs/delete-directory (fs/file "html/"))
+  (fs/delete-file "config.clj"))
 
 
 (use-fixtures :once dummy-fs-fixture)
 
 (deftest test-markdown
-  (let [[metadata content] (read-doc "resources/site/dummy.markdown")]
+  (let [[metadata content] (read-doc (resource-dir "/site/dummy.markdown"))]
     (is (= "unit test"  (:tags metadata)))
     (is (= "some dummy desc" (:description metadata)))
     (is (= "dummy content" (:title metadata)))
@@ -25,18 +26,18 @@
            (re-find #"Some dummy file for unit testing." @content)))))
 
 (deftest test-cssgen
-  (let [[metadata content] (read-doc "resources/site/style.cssgen")]
+  (let [[metadata content] (read-doc (resource-dir "/site/style.cssgen"))]
     (is (= "font-size: 1em;" (re-find #"font-size: 1em;" @content)))))
 
 (deftest test-org
-  (let [[metadata content] (read-doc (fs/file "resources/posts/2050-07-07-dummy-future-post-7.org"))]
+  (let [[metadata content] (read-doc (fs/file (resource-dir "/posts/2050-07-07-dummy-future-post-7.org")))]
     (is (= "org-mode org-babel"  (:tags metadata)))
     (is (= "Dummy org-mode post" (:title metadata)))
     (is (= "Sum 1 and 2" (re-find #"Sum 1 and 2" @content)))
     (is (= 2 (count (:links metadata))))))
 
 (deftest test-clj
-  (let [[metadata content] (read-doc (fs/file "resources/site/dummy_clj.clj"))]
+  (let [[metadata content] (read-doc (fs/file (resource-dir "/site/dummy_clj.clj")))]
     (is (= "Dummy Clj File" (:title metadata)))
     (is (= "Dummy Clj Content" (re-find #"Dummy Clj Content" @content)))
     (is (= "<h3>" (re-find #"<h3>" @content)))))

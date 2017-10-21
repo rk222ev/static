@@ -64,19 +64,13 @@
   [path]
   (.exists (io/file path)))
 
-(defn safe-delete [file-path]
-  (if (exists? file-path)
-    (try
-      (io/delete-file file-path)
-      (catch Exception e (str "exception: " (.getMessage e))))
-    false))
-
-(defn delete-directory [directory-path]
-  (let [directory-contents (file-seq (io/file directory-path))
-        files-to-delete (filter #(file? %) directory-contents)]
-    (doseq [file files-to-delete]
-      (safe-delete (.getPath file)))
-    (safe-delete directory-path)))
+(defn delete-directory
+  "Delete a directory tree."
+  [root]
+  (when (directory? root)
+    (doseq [path (.listFiles (file root))]
+      (delete-directory path)))
+  (delete-file root))
 
 (defn move
   "Try to rename a file, or copy and delete if on another filesystem."

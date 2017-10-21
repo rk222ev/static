@@ -344,9 +344,10 @@
 (defn create
   "Build Site."
   []
-  (doto (fs/file (:out-dir (config/config)))
-    (fs/delete-directory)
-    (fs/create-directory))
+
+  (let [f (fs/file (:out-dir (config/config)))]
+    (when (fs/exists? f) (fs/delete-directory f))
+    (fs/create-directory f))
 
   (log-time-elapsed "Processing Public " (process-public))
   (log-time-elapsed "Processing Site " (process-site))
