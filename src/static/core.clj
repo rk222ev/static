@@ -354,7 +354,10 @@
 
   (when (pos? (-> (io/dir-path :posts) (fs/file) .list count))
     (log-time-elapsed "Processing Posts " (process-posts))
-    (log-time-elapsed "Creating RSS " (create-rss))
+
+    (when (:create-rss (config/config))
+      (log-time-elapsed "Creating RSS " (create-rss)))
+
     (log-time-elapsed "Creating Tags " (create-tags))
 
     (when (:create-archives (config/config))
